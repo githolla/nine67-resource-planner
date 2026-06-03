@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nine-67 · Resource & Project Planner</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1b2330; --muted:#6b7688; --line:#e4e8ef;
+    --brand:#2f6df6; --brand-dark:#1f4fc4; --teal:#16a0a0;
+    --ok:#1f9d57; --okbg:#e7f6ee; --warn:#e8a13a; --warnbg:#fdf3e2;
+    --bad:#e0533d; --badbg:#fde9e5; --idle:#8a93a3; --idlebg:#eef1f5;
+    --shadow:0 1px 3px rgba(20,30,55,.08),0 6px 24px rgba(20,30,55,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+  h1,h2,h3,h4{margin:0;font-weight:650}
+  a{color:var(--brand)}
+  button{font-family:inherit;cursor:pointer}
+  .app{max-width:1280px;margin:0 auto;padding:0 20px 80px}
+
+  /* Header */
+  header.top{display:flex;align-items:center;gap:14px;padding:18px 0 14px}
+  .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--teal));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px}
+  .brandwrap h1{font-size:18px}
+  .brandwrap .sub{color:var(--muted);font-size:12.5px}
+  .top .spacer{flex:1}
+  .top .date{color:var(--muted);font-size:12.5px;text-align:right}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 13px;border-radius:9px;font-size:13px;font-weight:600}
+  .btn:hover{border-color:#cdd4df;background:#fafbfc}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.primary:hover{background:var(--brand-dark)}
+  .btn.danger{color:var(--bad);border-color:#f1c9c1}
+  .btn.danger:hover{background:var(--badbg)}
+  .btn.tiny{padding:4px 9px;font-size:12px;border-radius:7px}
+
+  /* Nav */
+  nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap}
+  nav.tabs button{background:none;border:none;padding:11px 15px;font-size:13.5px;font-weight:600;color:var(--muted);
+    border-bottom:2px solid transparent;margin-bottom:-1px}
+  nav.tabs button:hover{color:var(--ink)}
+  nav.tabs button.active{color:var(--brand);border-bottom-color:var(--brand)}
+
+  /* Cards / layout */
+  .grid{display:grid;gap:14px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:var(--shadow)}
+  .stat .label{color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .stat .big{font-size:28px;font-weight:750;margin-top:6px}
+  .stat .note{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .stat.alert .big{color:var(--bad)}
+  .stat.good .big{color:var(--ok)}
+
+  .section-title{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+  .section-title h2{font-size:16px}
+  .section-title .spacer{flex:1}
+
+  /* Tables */
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:13px;overflow:hidden;
+    box-shadow:var(--shadow);border:1px solid var(--line)}
+  thead th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);
+    padding:11px 14px;border-bottom:1px solid var(--line);background:#fafbfd;font-weight:700}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfd}
+  .name{font-weight:650}
+  .sub2{color:var(--muted);font-size:12.5px}
+
+  /* Pills / tags */
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:650;white-space:nowrap}
+  .pill.ok{background:var(--okbg);color:#147a43}
+  .pill.warn{background:var(--warnbg);color:#a76a13}
+  .pill.bad{background:var(--badbg);color:#b53521}
+  .pill.idle{background:var(--idlebg);color:#5d6675}
+  .pill.pri-High{background:#fde9e5;color:#b53521}
+  .pill.pri-Medium{background:#fdf3e2;color:#a76a13}
+  .pill.pri-Low{background:#eef1f5;color:#5d6675}
+  .tag{display:inline-block;background:#eef2fb;color:#39507f;border-radius:6px;padding:2px 7px;font-size:11.5px;margin:2px 3px 2px 0}
+
+  /* Capacity bar */
+  .bar{position:relative;height:9px;border-radius:6px;background:#eef1f5;overflow:hidden;min-width:90px}
+  .bar > span{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+  .bar .fill-ok{background:var(--ok)} .bar .fill-warn{background:var(--warn)} .bar .fill-bad{background:var(--bad)}
+  .barwrap{display:flex;align-items:center;gap:9px}
+  .barwrap .num{font-variant-numeric:tabular-nums;font-weight:650;min-width:42px}
+
+  /* Toolbar filters */
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  input[type=text],input[type=date],input[type=number],select,textarea{
+    font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(47,109,246,.12)}
+  .toolbar .search{flex:1;min-width:180px}
+  label.fld{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+  label.fld input,label.fld select,label.fld textarea{font-weight:400;color:var(--ink)}
+
+  /* Timeline */
+  .tl-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow)}
+  table.tl{box-shadow:none;border:none;border-radius:0;min-width:900px}
+  table.tl th.week{text-align:center;font-size:10.5px;min-width:46px;padding:8px 2px;white-space:nowrap}
+  table.tl th.week.mstart{border-left:2px solid var(--line)}
+  table.tl td.cell{padding:3px;text-align:center}
+  .tlcell{height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff}
+  table.tl td.pname{font-weight:650;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1}
+  table.tl thead th.pname{position:sticky;left:0;background:#fafbfd;z-index:2}
+
+  /* Assistant */
+  .assistant-grid{display:grid;grid-template-columns:1fr 300px;gap:16px}
+  @media(max-width:880px){.assistant-grid{grid-template-columns:1fr}.assistant-grid{grid-template-columns:1fr}}
+  .chat{display:flex;flex-direction:column;height:560px;background:var(--panel);border:1px solid var(--line);
+    border-radius:13px;box-shadow:var(--shadow);overflow:hidden}
+  .chat-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13.5px;white-space:pre-wrap}
+  .msg.user{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+  .msg.bot{align-self:flex-start;background:#f1f4f9;color:var(--ink);border-bottom-left-radius:4px}
+  .msg.bot.action{background:var(--okbg);border:1px solid #bfe6cf}
+  .msg b{font-weight:700}
+  .chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+  .chat-input input{flex:1}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+  .chip{background:#eef2fb;color:#39507f;border:none;border-radius:16px;padding:5px 11px;font-size:12px;font-weight:600}
+  .chip:hover{background:#dde6f8}
+  .side-card h3{font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .summ-btn{display:block;width:100%;text-align:left;margin-bottom:7px}
+  .suggestion{font-size:12.5px;border-left:3px solid var(--brand);padding:6px 10px;background:#f7f9fe;border-radius:0 8px 8px 0;margin-bottom:8px}
+  .suggestion b{color:var(--ink)}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(20,30,55,.45);display:flex;align-items:flex-start;
+    justify-content:center;padding:40px 16px;z-index:50;overflow-y:auto}
+  .modal{background:#fff;border-radius:15px;width:100%;max-width:540px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h3{padding:18px 20px;border-bottom:1px solid var(--line);font-size:16px}
+  .modal .body{padding:18px 20px;display:grid;gap:13px}
+  .modal .row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .modal .foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:9px}
+  .hint{font-size:12px;color:var(--muted)}
+  .empty{padding:30px;text-align:center;color:var(--muted)}
+  .flex{display:flex;align-items:center;gap:8px}
+  .wrap-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .banner{background:var(--badbg);border:1px solid #f1c9c1;color:#9c2f1d;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px}
+  .banner.info{background:#eef4ff;border-color:#cfe0ff;color:#2a4d96}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="logo">967</div>
+    <div class="brandwrap">
+      <h1>Resource &amp; Project Planner</h1>
+      <div class="sub">Plan who's working on what — and ask in plain English.</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="date" id="todayLabel"></div>
+    <button class="btn" id="resetBtn" title="Restore the original sample data">Reset sample data</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="dashboard" class="active">Dashboard</button>
+    <button data-tab="people">People</button>
+    <button data-tab="projects">Projects</button>
+    <button data-tab="allocations">Allocations</button>
+    <button data-tab="timeline">Timeline</button>
+    <button data-tab="whatif">What-if</button>
+    <button data-tab="assistant">AI Assistant</button>
+  </nav>
+
+  <div id="view"></div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ============================================================
+   Nine-67 Resource & Project Planner
+   Single-file app. No build step, no dependencies, no API key.
+   Data persists in your browser (localStorage).
+   ============================================================ */
+
+const TODAY = new Date('2026-06-03T00:00:00');
+const STORE_KEY = 'nine67_planner_v1';
+
+/* ---------- Date helpers ---------- */
+const DAY = 86400000;
+function d(s){ return new Date(s + 'T00:00:00'); }
+function iso(dt){ return dt.toISOString().slice(0,10); }
+function fmt(dt){ return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function fmtShort(dt){ return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function mondayOf(dt){ const x=new Date(dt); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; }
+function addDays(dt,n){ const x=new Date(dt); x.setDate(x.getDate()+n); return x; }
+function overlaps(aS,aE,bS,bE){ return aS<=bE && aE>=bS; }
+function clampDay(dt){ const x=new Date(dt); x.setHours(0,0,0,0); return x; }
+
+/* ---------- Sample data ---------- */
+function sampleData(){
+  return {
+    people:[
+      {id:'p1', name:'Priya Nair',     role:'Senior Engineer', team:'Engineering', skills:['Backend','Python','Lab Systems'], capacity:100, timeOff:[]},
+      {id:'p2', name:'Marcus Chen',    role:'Engineer',        team:'Engineering', skills:['Frontend','React','JavaScript'], capacity:100, timeOff:[]},
+      {id:'p3', name:'Sofia Alvarez',  role:'Data Scientist',  team:'Data',        skills:['Python','ML','Statistics'], capacity:100, timeOff:[{start:'2026-07-13',end:'2026-07-24',label:'Vacation'}]},
+      {id:'p4', name:'James Okoro',    role:'DevOps Engineer', team:'Platform',    skills:['AWS','Kubernetes','CI/CD'], capacity:100, timeOff:[]},
+      {id:'p5', name:'Hannah Schmidt', role:'UX Designer',     team:'Design',      skills:['UX','Figma','Research'], capacity:80, timeOff:[]},
+      {id:'p6', name:'Liam Murphy',    role:'Project Manager', team:'PMO',         skills:['Planning','Stakeholder Mgmt'], capacity:100, timeOff:[]},
+      {id:'p7', name:'Aisha Khan',     role:'QA Engineer',     team:'Engineering', skills:['Testing','Automation','Python'], capacity:100, timeOff:[]},
+      {id:'p8', name:'Diego Santos',   role:'Engineer',        team:'Engineering', skills:['Backend','Java','Lab Systems'], capacity:100, timeOff:[{start:'2026-08-03',end:'2026-08-07',label:'Conference'}]},
+      {id:'p9', name:'Emma Wilson',    role:'Data Engineer',   team:'Data',        skills:['SQL','ETL','Python'], capacity:60, timeOff:[]},
+      {id:'p10',name:'Noah Brown',     role:'Engineer',        team:'Engineering', skills:['Frontend','React','Mobile'], capacity:100, timeOff:[]},
+    ],
+    projects:[
+      {id:'pr1', name:'Atlas', description:'Customer portal redesign', start:'2026-05-01', end:'2026-09-30', priority:'High',
+        needs:[{skill:'Frontend',count:2},{skill:'UX',count:1},{skill:'Backend',count:1}]},
+      {id:'pr2', name:'Helix', description:'Lab data pipeline', start:'2026-06-01', end:'2026-11-30', priority:'High',
+        needs:[{skill:'Lab Systems',count:2},{skill:'Python',count:1},{skill:'ETL',count:1}]},
+      {id:'pr3', name:'Orion', description:'Internal analytics dashboard', start:'2026-07-01', end:'2026-10-15', priority:'Medium',
+        needs:[{skill:'ML',count:1},{skill:'Frontend',count:1},{skill:'SQL',count:1}]},
+      {id:'pr4', name:'Vega', description:'Platform migration to Kubernetes', start:'2026-04-01', end:'2026-08-31', priority:'Medium',
+        needs:[{skill:'AWS',count:1},{skill:'Kubernetes',count:1},{skill:'CI/CD',count:1}]},
+      {id:'pr5', name:'Nova', description:'Mobile app launch', start:'2026-08-01', end:'2026-12-15', priority:'Low',
+        needs:[{skill:'Mobile',count:1},{skill:'React',count:1},{skill:'Testing',count:1}]},
+    ],
+    allocations:[
+      {id:'a1', personId:'p1', projectId:'pr1', percent:50, start:'2026-05-01', end:'2026-09-30'},
+      {id:'a2', personId:'p1', projectId:'pr2', percent:60, start:'2026-06-01', end:'2026-11-30'},
+      {id:'a3', personId:'p2', projectId:'pr1', percent:70, start:'2026-05-01', end:'2026-09-30'},
+      {id:'a4', personId:'p2', projectId:'pr3', percent:40, start:'2026-07-01', end:'2026-10-15'},
+      {id:'a5', personId:'p3', projectId:'pr3', percent:50, start:'2026-07-01', end:'2026-10-15'},
+      {id:'a6', personId:'p4', projectId:'pr4', percent:80, start:'2026-04-01', end:'2026-08-31'},
+      {id:'a7', personId:'p5', projectId:'pr1', percent:60, start:'2026-05-01', end:'2026-09-30'},
+      {id:'a8', personId:'p6', projectId:'pr1', percent:20, start:'2026-05-01', end:'2026-09-30'},
+      {id:'a9', personId:'p6', projectId:'pr2', percent:20, start:'2026-06-01', end:'2026-11-30'},
+      {id:'a10',personId:'p6', projectId:'pr3', percent:20, start:'2026-07-01', end:'2026-10-15'},
+      {id:'a11',personId:'p8', projectId:'pr2', percent:80, start:'2026-06-01', end:'2026-11-30'},
+      {id:'a12',personId:'p9', projectId:'pr2', percent:40, start:'2026-06-01', end:'2026-11-30'},
+      {id:'a13',personId:'p7', projectId:'pr5', percent:50, start:'2026-08-01', end:'2026-12-15'},
+    ],
+  };
+}
+
+/* ---------- State / persistence ---------- */
+let state = load();
+function load(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return sampleData();
+}
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+function resetData(){ state = sampleData(); save(); render(); }
+function uid(p){ return p + Math.random().toString(36).slice(2,8); }
+
+/* ---------- Lookups ---------- */
+const personById  = id => state.people.find(p=>p.id===id);
+const projectById = id => state.projects.find(p=>p.id===id);
+function personByName(txt){
+  txt = txt.toLowerCase();
+  // exact-ish: match if a person's first name or full name appears in text
+  let best=null, bestLen=0;
+  for(const p of state.people){
+    const full=p.name.toLowerCase(), first=full.split(' ')[0];
+    if(txt.includes(full) && full.length>bestLen){best=p;bestLen=full.length;}
+    else if(txt.includes(first) && first.length>bestLen){best=p;bestLen=first.length;}
+  }
+  return best;
+}
+function projectByName(txt){
+  txt = txt.toLowerCase();
+  let best=null,bestLen=0;
+  for(const pr of state.projects){
+    const n=pr.name.toLowerCase();
+    if(txt.includes(n) && n.length>bestLen){best=pr;bestLen=n.length;}
+  }
+  return best;
+}
+function allSkills(){
+  const s=new Set();
+  state.people.forEach(p=>p.skills.forEach(x=>s.add(x)));
+  state.projects.forEach(p=>p.needs.forEach(n=>s.add(n.skill)));
+  return [...s].sort();
+}
+function allTeams(){ return [...new Set(state.people.map(p=>p.team))].sort(); }
+
+/* ---------- Core calculations ---------- */
+// Does a person provide a given skill? Matches their listed skills, and also
+// their role (so a need for "Engineer" is met by anyone whose role is Engineer).
+function personHasSkill(person, skill){
+  const s=skill.toLowerCase();
+  if(person.skills.some(x=>x.toLowerCase()===s)) return true;
+  return person.role.toLowerCase().includes(s);
+}
+// Is a person off on a given date?
+function isOff(person, date){
+  return (person.timeOff||[]).some(t=> date>=d(t.start) && date<=d(t.end));
+}
+// Effective capacity on a date (0 if on time off)
+function capacityOn(person, date){ return isOff(person,date) ? 0 : person.capacity; }
+
+// Allocations for a person, optionally only those active in a date window
+function allocationsFor(personId, winS, winE){
+  return (state.allocations||[]).filter(a=>{
+    if(a.personId!==personId) return false;
+    if(winS && winE){ return overlaps(d(a.start),d(a.end),winS,winE); }
+    return true;
+  });
+}
+// Workload (% of full time) at a single date
+function workloadOn(person, date){
+  let total=0;
+  for(const a of state.allocations){
+    if(a.personId!==person.id) continue;
+    if(date>=d(a.start) && date<=d(a.end)) total+=a.percent;
+  }
+  return total;
+}
+// Average weekly workload across a window (uses week starts)
+function avgWorkload(person, winS, winE){
+  const weeks = weeksBetween(winS, winE);
+  if(!weeks.length) return workloadOn(person, winS);
+  let sum=0; weeks.forEach(w=> sum+=workloadOn(person, addDays(w,2)) ); // sample mid-week
+  return Math.round(sum/weeks.length);
+}
+// Peak weekly workload across window
+function peakWorkload(person, winS, winE){
+  const weeks = weeksBetween(winS, winE);
+  let peak=0; weeks.forEach(w=>{ peak=Math.max(peak, workloadOn(person, addDays(w,2))); });
+  return peak;
+}
+function weeksBetween(winS, winE){
+  const out=[]; let w=mondayOf(winS); const end=clampDay(winE);
+  while(w<=end){ out.push(new Date(w)); w=addDays(w,7); if(out.length>120)break; }
+  return out;
+}
+// Status as of today
+function statusToday(person){
+  const off = isOff(person, TODAY);
+  const load = workloadOn(person, TODAY);
+  const cap = person.capacity;
+  if(off) return {kind:'off', load, cap, label:'On time off'};
+  if(load > cap) return {kind:'bad', load, cap, label:'Over-allocated'};
+  if(load === 0) return {kind:'idle', load, cap, label:'Idle'};
+  if(load >= cap*0.85) return {kind:'warn', load, cap, label:'Near full'};
+  return {kind:'ok', load, cap, label:'Available'};
+}
+
+// Project staffing: who's on it + skill gaps
+function projectStaffing(project, winS, winE){
+  const S=winS||d(project.start), E=winE||d(project.end);
+  const members = state.allocations
+    .filter(a=> a.projectId===project.id && overlaps(d(a.start),d(a.end),S,E))
+    .map(a=>({alloc:a, person:personById(a.personId)})).filter(m=>m.person);
+  // dedupe people (a person could have >1 alloc on same project)
+  const peopleOn=[...new Set(members.map(m=>m.person.id))].map(personById);
+  const gaps=[];
+  for(const need of project.needs){
+    const have = peopleOn.filter(p=>personHasSkill(p,need.skill)).length;
+    if(have < need.count) gaps.push({skill:need.skill, need:need.count, have, missing:need.count-have});
+  }
+  return {members, peopleOn, gaps};
+}
+
+// Capacity vs demand totals (current week)
+function portfolioTotals(){
+  let capacity=0, demand=0;
+  state.people.forEach(p=> capacity += capacityOn(p, TODAY));
+  state.people.forEach(p=> demand += workloadOn(p, TODAY));
+  const over = state.people.filter(p=> statusToday(p).kind==='bad');
+  const idle = state.people.filter(p=> statusToday(p).kind==='idle');
+  const understaffed = state.projects.filter(pr=>{
+    if(d(pr.end)<TODAY || d(pr.start)>addDays(TODAY,120)) {/* still include active soon */}
+    return projectStaffing(pr).gaps.length>0;
+  });
+  return {capacity, demand, over, idle, understaffed};
+}
+
+// Suggestions: for an over-allocated person or a project gap, who could help
+function suggestForGap(skill, project, winS, winE){
+  const S=winS||d(project.start), E=winE||d(project.end);
+  const onProject = new Set(projectStaffing(project,S,E).peopleOn.map(p=>p.id));
+  const candidates = state.people
+    .filter(p=> personHasSkill(p,skill) && !onProject.has(p.id))
+    .map(p=>{
+      const avg=avgWorkload(p,S,E);
+      return {person:p, avg, spare: p.capacity-avg};
+    })
+    .filter(c=> c.spare>0)
+    .sort((a,b)=> b.spare-a.spare);
+  return candidates;
+}
+function suggestRelief(person){
+  // who could take over some of this person's work — same-skill people with spare capacity
+  const winS=TODAY, winE=addDays(TODAY,90);
+  const out=[];
+  for(const a of allocationsFor(person.id, winS, winE)){
+    const pr=projectById(a.projectId); if(!pr) continue;
+    // find a skill this project needs that the person provides
+    const relevantSkill=(pr.needs.find(n=>person.skills.includes(n.skill))||{}).skill || person.skills[0];
+    const cands=suggestForGap(relevantSkill, pr, winS, winE).slice(0,2);
+    if(cands.length) out.push({project:pr, alloc:a, skill:relevantSkill, candidates:cands});
+  }
+  return out;
+}
+
+/* ---------- Utilization color ---------- */
+function utilClass(load, cap){
+  if(cap<=0) return 'idle';
+  const r=load/cap;
+  if(r>1.0) return 'bad';
+  if(r>=0.85) return 'warn';
+  if(r<=0.001) return 'idle';
+  return 'ok';
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+let currentTab='dashboard';
+const view = document.getElementById('view');
+const filters = {team:'', project:'', skill:'', q:''};
+
+function render(){
+  save();
+  document.getElementById('todayLabel').textContent = 'Today · ' + fmt(TODAY);
+  [...document.querySelectorAll('#tabs button')].forEach(b=>b.classList.toggle('active', b.dataset.tab===currentTab));
+  if(currentTab==='dashboard') renderDashboard();
+  else if(currentTab==='people') renderPeople();
+  else if(currentTab==='projects') renderProjects();
+  else if(currentTab==='allocations') renderAllocations();
+  else if(currentTab==='timeline') renderTimeline();
+  else if(currentTab==='whatif') renderWhatIf();
+  else if(currentTab==='assistant') renderAssistant();
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function barHtml(load, cap){
+  const cls=utilClass(load,cap);
+  const pct=Math.min(100, cap>0? Math.round(load/cap*100): (load>0?100:0));
+  return `<div class="barwrap"><div class="bar"><span class="fill-${cls==='idle'?'ok':cls}" style="width:${pct}%"></span></div>
+    <span class="num">${load}%</span></div>`;
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const t=portfolioTotals();
+  const util = t.capacity>0? Math.round(t.demand/t.capacity*100):0;
+  const overNames = t.over.map(p=>p.name.split(' ')[0]).join(', ');
+  let html = `
+  <div class="grid cards">
+    <div class="card stat"><div class="label">Total capacity</div><div class="big">${t.capacity}%</div>
+      <div class="note">${state.people.length} people, this week</div></div>
+    <div class="card stat ${util>100?'alert':''}"><div class="label">Demand vs capacity</div>
+      <div class="big">${util}%</div><div class="note">${t.demand}% committed of ${t.capacity}% available</div></div>
+    <div class="card stat ${t.over.length?'alert':'good'}"><div class="label">Over-allocated</div>
+      <div class="big">${t.over.length}</div><div class="note">${overNames||'No one — nice'}</div></div>
+    <div class="card stat ${t.understaffed.length?'alert':'good'}"><div class="label">Understaffed projects</div>
+      <div class="big">${t.understaffed.length}</div><div class="note">${t.understaffed.map(p=>p.name).join(', ')||'All staffed'}</div></div>
+  </div>`;
+
+  // Attention banners
+  if(t.over.length){
+    html += `<div class="banner">⚠️ <b>${t.over.length} ${t.over.length===1?'person is':'people are'} over-allocated</b> this week: ${esc(overNames)}. See the People tab or ask the assistant for relief options.</div>`;
+  }
+  if(t.idle.length){
+    html += `<div class="banner info">💡 <b>${t.idle.length} ${t.idle.length===1?'person is':'people are'} idle</b> right now: ${esc(t.idle.map(p=>p.name.split(' ')[0]).join(', '))}. They may be available for understaffed work.</div>`;
+  }
+
+  // Capacity bar by team
+  html += `<div class="section-title"><h2>Workload by person (this week)</h2></div>`;
+  const sorted=[...state.people].sort((a,b)=> workloadOn(b,TODAY)/b.capacity - workloadOn(a,TODAY)/a.capacity);
+  html += `<table><thead><tr><th>Person</th><th>Team</th><th>Workload</th><th>Status</th></tr></thead><tbody>`;
+  for(const p of sorted){
+    const s=statusToday(p);
+    html += `<tr><td><span class="name">${esc(p.name)}</span><div class="sub2">${esc(p.role)}</div></td>
+      <td>${esc(p.team)}</td><td>${barHtml(s.load,s.cap)}</td>
+      <td><span class="pill ${s.kind==='off'?'idle':s.kind}">${s.label}</span></td></tr>`;
+  }
+  html += `</tbody></table>`;
+
+  // Project health
+  html += `<div class="section-title"><h2>Project health</h2></div>`;
+  html += `<table><thead><tr><th>Project</th><th>Priority</th><th>Dates</th><th>Staffed</th><th>Skill gaps</th></tr></thead><tbody>`;
+  const prSorted=[...state.projects].sort((a,b)=> priRank(b.priority)-priRank(a.priority));
+  for(const pr of prSorted){
+    const st=projectStaffing(pr);
+    const gapTxt = st.gaps.length? st.gaps.map(g=>`${g.missing}× ${esc(g.skill)}`).join(', ')
+      : `<span class="pill ok">Fully staffed</span>`;
+    html += `<tr><td><span class="name">${esc(pr.name)}</span><div class="sub2">${esc(pr.description)}</div></td>
+      <td><span class="pill pri-${pr.priority}">${pr.priority}</span></td>
+      <td class="sub2">${fmtShort(d(pr.start))} – ${fmtShort(d(pr.end))}</td>
+      <td>${st.peopleOn.length} ${st.peopleOn.length===1?'person':'people'}</td>
+      <td>${st.gaps.length?'<span class="pill bad">'+gapTxt+'</span>':gapTxt}</td></tr>`;
+  }
+  html += `</tbody></table>`;
+  view.innerHTML=html;
+}
+function priRank(p){ return p==='High'?3:p==='Medium'?2:1; }
+
+/* ---------- People ---------- */
+function renderPeople(){
+  let html = `<div class="toolbar">
+    <input type="text" class="search" id="pq" placeholder="Search people by name…" value="${esc(filters.q)}">
+    ${selectFilter('team','All teams',allTeams())}
+    ${selectFilter('skill','All skills',allSkills())}
+    <div class="spacer" style="flex:1"></div>
+    <button class="btn primary" onclick="openPersonForm()">+ Add person</button>
+  </div>`;
+
+  let people=state.people.filter(p=>{
+    if(filters.q && !p.name.toLowerCase().includes(filters.q.toLowerCase())) return false;
+    if(filters.team && p.team!==filters.team) return false;
+    if(filters.skill && !p.skills.includes(filters.skill)) return false;
+    return true;
+  });
+
+  html += `<table><thead><tr><th>Person</th><th>Team</th><th>Skills</th><th>Capacity</th>
+    <th>Workload (now)</th><th>Status</th><th>Time off</th><th></th></tr></thead><tbody>`;
+  if(!people.length) html += `<tr><td colspan="8"><div class="empty">No people match your filters.</div></td></tr>`;
+  for(const p of people){
+    const s=statusToday(p);
+    const to=(p.timeOff||[]).map(t=>`${fmtShort(d(t.start))}–${fmtShort(d(t.end))}`).join(', ')||'—';
+    html += `<tr>
+      <td><span class="name">${esc(p.name)}</span><div class="sub2">${esc(p.role)}</div></td>
+      <td>${esc(p.team)}</td>
+      <td>${p.skills.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</td>
+      <td>${p.capacity}%</td>
+      <td>${barHtml(s.load,s.cap)}</td>
+      <td><span class="pill ${s.kind==='off'?'idle':s.kind}">${s.label}</span></td>
+      <td class="sub2">${to}</td>
+      <td class="wrap-actions">
+        <button class="btn tiny" onclick="openPersonForm('${p.id}')">Edit</button>
+        <button class="btn tiny danger" onclick="deletePerson('${p.id}')">Delete</button>
+      </td></tr>`;
+  }
+  html += `</tbody></table>`;
+  view.innerHTML=html;
+  wireFilters();
+}
+
+/* ---------- Projects ---------- */
+function renderProjects(){
+  let html = `<div class="toolbar">
+    <input type="text" class="search" id="pq" placeholder="Search projects…" value="${esc(filters.q)}">
+    ${selectFilter('skill','All needed skills',allSkills())}
+    <div class="spacer" style="flex:1"></div>
+    <button class="btn primary" onclick="openProjectForm()">+ Add project</button>
+  </div>`;
+
+  let projects=state.projects.filter(pr=>{
+    if(filters.q && !(pr.name.toLowerCase().includes(filters.q.toLowerCase()) || pr.description.toLowerCase().includes(filters.q.toLowerCase()))) return false;
+    if(filters.skill && !pr.needs.some(n=>n.skill===filters.skill)) return false;
+    return true;
+  }).sort((a,b)=>priRank(b.priority)-priRank(a.priority));
+
+  for(const pr of projects){
+    const st=projectStaffing(pr);
+    html += `<div class="card" style="margin-bottom:14px">
+      <div class="flex" style="align-items:flex-start">
+        <div style="flex:1">
+          <div class="flex"><h3 style="font-size:16px">${esc(pr.name)}</h3>
+            <span class="pill pri-${pr.priority}">${pr.priority}</span></div>
+          <div class="sub2" style="margin:3px 0">${esc(pr.description)}</div>
+          <div class="sub2">${fmt(d(pr.start))} → ${fmt(d(pr.end))}</div>
+        </div>
+        <div class="wrap-actions">
+          <button class="btn tiny" onclick="openProjectForm('${pr.id}')">Edit</button>
+          <button class="btn tiny danger" onclick="deleteProject('${pr.id}')">Delete</button>
+        </div>
+      </div>`;
+
+    // Needs vs have
+    html += `<div style="margin-top:12px"><b style="font-size:12.5px">Roles &amp; skills needed</b><div style="margin-top:6px">`;
+    for(const need of pr.needs){
+      const have=st.peopleOn.filter(p=>personHasSkill(p,need.skill)).length;
+      const ok=have>=need.count;
+      html += `<span class="pill ${ok?'ok':'bad'}" style="margin:0 6px 6px 0">${esc(need.skill)} · ${have}/${need.count}${ok?'':' — gap'}</span>`;
+    }
+    html += `</div></div>`;
+
+    // Team on it
+    html += `<div style="margin-top:12px"><b style="font-size:12.5px">Team (${st.peopleOn.length})</b>`;
+    if(!st.members.length){ html += `<div class="sub2" style="margin-top:5px">No one assigned yet.</div>`; }
+    else{
+      html += `<table style="margin-top:6px"><thead><tr><th>Person</th><th>Role</th><th>Allocation</th><th>Dates</th></tr></thead><tbody>`;
+      for(const m of st.members){
+        html += `<tr><td class="name">${esc(m.person.name)}</td><td class="sub2">${esc(m.person.role)}</td>
+          <td>${m.alloc.percent}%</td><td class="sub2">${fmtShort(d(m.alloc.start))}–${fmtShort(d(m.alloc.end))}</td></tr>`;
+      }
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+
+    // Gap suggestions
+    if(st.gaps.length){
+      html += `<div style="margin-top:12px"><b style="font-size:12.5px;color:var(--bad)">Staffing gaps — suggestions</b>`;
+      for(const g of st.gaps){
+        const cands=suggestForGap(g.skill, pr).slice(0,2);
+        const who = cands.length
+          ? cands.map(c=>`<b>${esc(c.person.name.split(' ')[0])}</b> (${c.spare}% free)`).join(' or ')
+          : 'no one with spare capacity — consider hiring or rescheduling';
+        html += `<div class="suggestion">Need <b>${g.missing}× ${esc(g.skill)}</b>. Could assign ${who}.</div>`;
+      }
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  if(!projects.length) html += `<div class="empty">No projects match your filters.</div>`;
+  view.innerHTML=html;
+  wireFilters();
+}
+
+/* ---------- Allocations ---------- */
+function renderAllocations(){
+  let html = `<div class="toolbar">
+    ${selectFilter('project','All projects',state.projects.map(p=>p.name))}
+    ${selectFilter('team','All teams',allTeams())}
+    <div class="spacer" style="flex:1"></div>
+    <button class="btn primary" onclick="openAllocForm()">+ Add assignment</button>
+  </div>`;
+  let allocs=[...state.allocations];
+  if(filters.project){ const pr=state.projects.find(p=>p.name===filters.project); allocs=allocs.filter(a=>a.projectId===pr.id); }
+  if(filters.team){ allocs=allocs.filter(a=>{ const p=personById(a.personId); return p&&p.team===filters.team; }); }
+
+  html += `<table><thead><tr><th>Person</th><th>Project</th><th>Allocation</th><th>Date range</th><th></th></tr></thead><tbody>`;
+  if(!allocs.length) html += `<tr><td colspan="5"><div class="empty">No assignments match.</div></td></tr>`;
+  for(const a of allocs){
+    const p=personById(a.personId), pr=projectById(a.projectId);
+    if(!p||!pr) continue;
+    html += `<tr>
+      <td><span class="name">${esc(p.name)}</span><div class="sub2">${esc(p.role)}</div></td>
+      <td>${esc(pr.name)} <span class="pill pri-${pr.priority}" style="margin-left:4px">${pr.priority}</span></td>
+      <td>${a.percent}%</td>
+      <td class="sub2">${fmt(d(a.start))} → ${fmt(d(a.end))}</td>
+      <td class="wrap-actions">
+        <button class="btn tiny" onclick="openAllocForm('${a.id}')">Edit</button>
+        <button class="btn tiny danger" onclick="deleteAlloc('${a.id}')">Remove</button>
+      </td></tr>`;
+  }
+  html += `</tbody></table>`;
+  view.innerHTML=html;
+  wireFilters();
+}
+
+/* ---------- Timeline ---------- */
+function renderTimeline(){
+  const start=mondayOf(TODAY); const N=16;
+  const weeks=[]; for(let i=0;i<N;i++) weeks.push(addDays(start,i*7));
+  let html=`<div class="section-title"><h2>Allocation timeline · next ${N} weeks</h2></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--ok)"></i>Healthy (≤85%)</span>
+      <span><i class="sw" style="background:var(--warn)"></i>Near full</span>
+      <span><i class="sw" style="background:var(--bad)"></i>Over-allocated</span>
+      <span><i class="sw" style="background:var(--idle)"></i>Time off</span>
+      <span><i class="sw" style="background:#eef1f5"></i>Idle / free</span>
+    </div>
+    <div class="tl-wrap"><table class="tl"><thead><tr><th class="pname">Person</th>`;
+  let curMonth=-1;
+  for(const w of weeks){
+    const m=w.getMonth(); const mstart=(m!==curMonth); curMonth=m;
+    const lbl=(w.getDate()<=7? w.toLocaleDateString('en-US',{month:'short'})+' ' : '')+w.getDate();
+    html+=`<th class="week ${mstart?'mstart':''}">${lbl}</th>`;
+  }
+  html+=`</tr></thead><tbody>`;
+  for(const p of state.people){
+    html+=`<tr><td class="pname">${esc(p.name)}<div class="sub2">${esc(p.team)}</div></td>`;
+    for(const w of weeks){
+      const mid=addDays(w,2);
+      const off=isOff(p,mid);
+      const load=workloadOn(p,mid);
+      const cap=p.capacity;
+      if(off){ html+=`<td class="cell"><div class="tlcell" style="background:var(--idle)" title="Time off">off</div></td>`; }
+      else if(load===0){ html+=`<td class="cell"><div class="tlcell" style="background:#eef1f5;color:#9aa3b2" title="No work assigned">—</div></td>`; }
+      else{
+        const cls=utilClass(load,cap);
+        const color=cls==='bad'?'var(--bad)':cls==='warn'?'var(--warn)':'var(--ok)';
+        html+=`<td class="cell"><div class="tlcell" style="background:${color}" title="${load}% of ${cap}%">${load}</div></td>`;
+      }
+    }
+    html+=`</tr>`;
+  }
+  html+=`</tbody></table></div>
+    <p class="hint" style="margin-top:10px">Each cell is one week, showing total workload as % of full time. Red means over 100% (over-allocated).</p>`;
+  view.innerHTML=html;
+}
+
+/* ---------- What-if ---------- */
+let whatIf={action:'add-alloc', personId:'', projectId:'', percent:50, removePersonId:'',
+  npName:'', npStart:iso(addDays(TODAY,30)), npEngineers:2};
+function renderWhatIf(){
+  const peopleOpts=state.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const projOpts=state.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  let html=`<div class="banner info">🧪 <b>What-if sandbox.</b> Try a change and preview the impact on everyone's workload — nothing is saved until you click <b>Apply</b>.</div>
+  <div class="card" style="margin-bottom:16px">
+    <label class="fld" style="max-width:320px">Scenario
+      <select id="wfAction">
+        <option value="add-alloc">Assign someone to a project</option>
+        <option value="add-project">Add a new project (needs N engineers)</option>
+        <option value="remove-person">Remove a person</option>
+      </select>
+    </label>
+    <div id="wfControls" style="margin-top:14px"></div>
+    <div style="margin-top:14px"><button class="btn primary" onclick="runWhatIf()">Preview impact</button>
+      <button class="btn" onclick="document.getElementById('wfResult').innerHTML=''">Clear</button></div>
+  </div>
+  <div id="wfResult"></div>`;
+  view.innerHTML=html;
+  const sel=document.getElementById('wfAction'); sel.value=whatIf.action;
+  sel.onchange=()=>{ whatIf.action=sel.value; drawWfControls(); };
+  drawWfControls();
+
+  function drawWfControls(){
+    const c=document.getElementById('wfControls');
+    if(whatIf.action==='add-alloc'){
+      c.innerHTML=`<div class="modal" style="box-shadow:none;max-width:100%"><div class="body" style="padding:0">
+        <div class="row2">
+          <label class="fld">Person<select id="wfPerson">${peopleOpts}</select></label>
+          <label class="fld">Project<select id="wfProject">${projOpts}</select></label>
+        </div>
+        <label class="fld" style="max-width:200px">Allocation %<input type="number" id="wfPct" min="0" max="100" value="${whatIf.percent}"></label>
+      </div></div>`;
+    } else if(whatIf.action==='remove-person'){
+      c.innerHTML=`<label class="fld" style="max-width:320px">Person to remove<select id="wfRemove">${peopleOpts}</select></label>`;
+    } else {
+      c.innerHTML=`<div class="row2" style="max-width:520px">
+        <label class="fld">Project name<input type="text" id="wfName" value="${esc(whatIf.npName)}" placeholder="e.g. Helix Phase 2"></label>
+        <label class="fld">Starts<input type="date" id="wfStart" value="${whatIf.npStart}"></label>
+        <label class="fld">Engineers needed<input type="number" id="wfEng" min="1" max="10" value="${whatIf.npEngineers}"></label>
+      </div><p class="hint">We'll tentatively pull in the engineers with the most spare capacity to show the impact.</p>`;
+    }
+  }
+}
+function runWhatIf(){
+  // snapshot
+  const snapshot=JSON.parse(JSON.stringify(state));
+  const before={}; state.people.forEach(p=> before[p.id]=workloadOn(p,TODAY));
+  let note='';
+  if(whatIf.action==='add-alloc'){
+    const pid=document.getElementById('wfPerson').value, prid=document.getElementById('wfProject').value;
+    const pct=+document.getElementById('wfPct').value||0; whatIf.percent=pct;
+    const pr=projectById(prid);
+    state.allocations.push({id:'tmp', personId:pid, projectId:prid, percent:pct, start:pr.start, end:pr.end});
+    note=`Assigning ${esc(personById(pid).name)} to ${esc(pr.name)} at ${pct}%.`;
+  } else if(whatIf.action==='remove-person'){
+    const pid=document.getElementById('wfRemove').value;
+    note=`Removing ${esc(personById(pid).name)} — their ${allocationsFor(pid).length} assignment(s) would be unstaffed.`;
+    state.people=state.people.filter(p=>p.id!==pid);
+    state.allocations=state.allocations.filter(a=>a.personId!==pid);
+  } else {
+    const name=document.getElementById('wfName').value||'New Project';
+    const startD=document.getElementById('wfStart').value;
+    const eng=+document.getElementById('wfEng').value||1;
+    whatIf.npName=name; whatIf.npStart=startD; whatIf.npEngineers=eng;
+    const endD=iso(addDays(d(startD),120));
+    const prid=uid('pr');
+    state.projects.push({id:prid,name,description:'(what-if)',start:startD,end:endD,priority:'Medium',
+      needs:[{skill:'Engineer',count:eng}]});
+    // pull in engineers with most spare capacity
+    const eng_people=state.people.filter(p=>p.role.toLowerCase().includes('engineer'))
+      .map(p=>({p,spare:p.capacity-workloadOn(p,d(startD))})).sort((a,b)=>b.spare-a.spare).slice(0,eng);
+    eng_people.forEach(e=> state.allocations.push({id:'tmp',personId:e.p.id,projectId:prid,percent:50,start:startD,end:endD}));
+    note=`Adding <b>${esc(name)}</b> starting ${fmt(d(startD))}, tentatively staffed with ${eng_people.map(e=>esc(e.p.name.split(' ')[0])).join(', ')||'no available engineers'} at 50% each.`;
+  }
+  // compute after using the projected start date when relevant
+  const probe = whatIf.action==='add-project' ? addDays(d(whatIf.npStart),7) : TODAY;
+  const after={}; state.people.forEach(p=> after[p.id]=workloadOn(p,probe));
+
+  // build result table
+  let rows='';
+  const ids=new Set([...Object.keys(before),...Object.keys(after)]);
+  const affected=[...ids].map(id=>({id, name:(snapshot.people.find(p=>p.id===id)||{}).name||'(removed)',
+      b:before[id], a:after[id], cap:(snapshot.people.find(p=>p.id===id)||{}).capacity||100}))
+    .filter(r=> r.a!==undefined && r.b!==r.a)
+    .sort((x,y)=> (y.a/y.cap)-(x.a/x.cap));
+  if(!affected.length){ rows=`<tr><td colspan="4"><div class="empty">No change to anyone's current workload.</div></td></tr>`; }
+  for(const r of affected){
+    const wasOver=r.b>r.cap, nowOver=r.a>r.cap;
+    const flag = nowOver? `<span class="pill bad">Over-allocated</span>` : wasOver&&!nowOver? `<span class="pill ok">Now OK</span>` : '';
+    rows+=`<tr><td class="name">${esc(r.name)}</td><td>${r.b}%</td>
+      <td>${barHtml(r.a,r.cap)}</td><td>${flag}</td></tr>`;
+  }
+  const newOver=affected.filter(r=>r.a>r.cap).length;
+  // restore
+  state=snapshot;
+  document.getElementById('wfResult').innerHTML=`
+    <div class="banner info">${note}</div>
+    ${newOver?`<div class="banner">This scenario would leave <b>${newOver}</b> ${newOver===1?'person':'people'} over-allocated.</div>`:''}
+    <div class="section-title"><h2>Projected impact</h2></div>
+    <table><thead><tr><th>Person</th><th>Workload before</th><th>Workload after</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="margin-top:14px"><button class="btn primary" onclick="applyWhatIf()">Apply this change for real</button></div>`;
+}
+function applyWhatIf(){
+  // Use the choices captured during runWhatIf (lastWf) to apply permanently.
+  const w=lastWf;
+  if(!w){ alert('Please preview first.'); return; }
+  if(w.kind==='add-alloc'){
+    const pr=projectById(w.prid);
+    state.allocations.push({id:uid('a'),personId:w.pid,projectId:w.prid,percent:w.pct,start:pr.start,end:pr.end});
+  } else if(w.kind==='remove-person'){
+    state.people=state.people.filter(p=>p.id!==w.pid);
+    state.allocations=state.allocations.filter(a=>a.personId!==w.pid);
+  } else if(w.kind==='add-project'){
+    const prid=uid('pr'); const endD=iso(addDays(d(w.start),120));
+    state.projects.push({id:prid,name:w.name,description:'Added via what-if',start:w.start,end:endD,priority:'Medium',
+      needs:[{skill:'Engineer',count:w.eng}]});
+    w.engPeople.forEach(id=> state.allocations.push({id:uid('a'),personId:id,projectId:prid,percent:50,start:w.start,end:endD}));
+  }
+  save();
+  currentTab='dashboard'; render();
+}
+let lastWf=null;
+
+/* ---------- Filter helpers ---------- */
+function selectFilter(key,allLabel,opts){
+  const cur=filters[key];
+  return `<select data-filter="${key}"><option value="">${allLabel}</option>`+
+    opts.map(o=>`<option value="${esc(o)}" ${o===cur?'selected':''}>${esc(o)}</option>`).join('')+`</select>`;
+}
+function wireFilters(){
+  const q=document.getElementById('pq');
+  if(q) q.oninput=()=>{ filters.q=q.value; const pos=q.selectionStart; render(); const nq=document.getElementById('pq'); if(nq){nq.focus(); nq.setSelectionRange(pos,pos);} };
+  document.querySelectorAll('[data-filter]').forEach(sel=>{
+    sel.onchange=()=>{ filters[sel.dataset.filter]=sel.value; render(); };
+  });
+}
+
+/* ============================================================
+   FORMS / MODALS
+   ============================================================ */
+const modalRoot=document.getElementById('modalRoot');
+function closeModal(){ modalRoot.innerHTML=''; }
+function modal(title, bodyHtml, onSave){
+  modalRoot.innerHTML=`<div class="modal-bg" id="mbg"><div class="modal">
+    <h3>${esc(title)}</h3><div class="body">${bodyHtml}</div>
+    <div class="foot"><button class="btn" id="mCancel">Cancel</button>
+      <button class="btn primary" id="mSave">Save</button></div></div></div>`;
+  document.getElementById('mCancel').onclick=closeModal;
+  document.getElementById('mbg').onclick=e=>{ if(e.target.id==='mbg') closeModal(); };
+  document.getElementById('mSave').onclick=()=>{ if(onSave()!==false){ closeModal(); render(); } };
+}
+
+/* Person form */
+function openPersonForm(id){
+  const p=id?personById(id):{name:'',role:'',team:'',skills:[],capacity:100,timeOff:[]};
+  const toRows=(p.timeOff||[]).map((t,i)=>toRow(t,i)).join('')||'';
+  modal(id?'Edit person':'Add person',`
+    <div class="row2">
+      <label class="fld">Name<input type="text" id="f_name" value="${esc(p.name)}"></label>
+      <label class="fld">Role<input type="text" id="f_role" value="${esc(p.role)}" placeholder="e.g. Engineer"></label>
+    </div>
+    <div class="row2">
+      <label class="fld">Team<input type="text" id="f_team" value="${esc(p.team)}" placeholder="e.g. Engineering"></label>
+      <label class="fld">Available capacity (% of full time)<input type="number" id="f_cap" min="0" max="100" value="${p.capacity}"></label>
+    </div>
+    <label class="fld">Skills (comma separated)<input type="text" id="f_skills" value="${esc((p.skills||[]).join(', '))}" placeholder="e.g. Python, React, UX"></label>
+    <div><b style="font-size:12.5px">Planned time off</b><div id="toList" style="margin-top:8px;display:grid;gap:8px">${toRows}</div>
+      <button class="btn tiny" style="margin-top:8px" onclick="addToRow()">+ Add time off</button></div>
+  `,()=>{
+    const name=val('f_name').trim(); if(!name){ alert('Name is required'); return false; }
+    const data={ name, role:val('f_role').trim(), team:val('f_team').trim()||'Unassigned',
+      capacity:clampNum(val('f_cap'),0,100,100),
+      skills:val('f_skills').split(',').map(s=>s.trim()).filter(Boolean),
+      timeOff:readToRows() };
+    if(id){ Object.assign(personById(id),data); }
+    else{ state.people.push({id:uid('p'),...data}); }
+  });
+  function toRow(t,i){ return `<div class="row2 toRow"><input type="date" class="to-s" value="${t.start||''}">
+    <div class="flex"><input type="date" class="to-e" value="${t.end||''}" style="flex:1">
+    <button class="btn tiny danger" onclick="this.closest('.toRow').remove()">✕</button></div></div>`; }
+  window.addToRow=()=>{ const div=document.createElement('div'); div.innerHTML=toRow({},0); document.getElementById('toList').appendChild(div.firstChild); };
+  window.readToRows=()=>{ return [...document.querySelectorAll('.toRow')].map(r=>({
+      start:r.querySelector('.to-s').value, end:r.querySelector('.to-e').value, label:'Time off'
+    })).filter(t=>t.start&&t.end); };
+}
+
+/* Project form */
+function openProjectForm(id){
+  const pr=id?projectById(id):{name:'',description:'',start:iso(TODAY),end:iso(addDays(TODAY,120)),priority:'Medium',needs:[]};
+  const needRows=(pr.needs||[]).map(n=>needRow(n)).join('');
+  modal(id?'Edit project':'Add project',`
+    <div class="row2">
+      <label class="fld">Project name<input type="text" id="f_name" value="${esc(pr.name)}"></label>
+      <label class="fld">Priority<select id="f_pri">
+        ${['High','Medium','Low'].map(x=>`<option ${x===pr.priority?'selected':''}>${x}</option>`).join('')}</select></label>
+    </div>
+    <label class="fld">Short description<input type="text" id="f_desc" value="${esc(pr.description)}"></label>
+    <div class="row2">
+      <label class="fld">Start date<input type="date" id="f_start" value="${pr.start}"></label>
+      <label class="fld">End date<input type="date" id="f_end" value="${pr.end}"></label>
+    </div>
+    <div><b style="font-size:12.5px">Roles / skills needed</b>
+      <div id="needList" style="margin-top:8px;display:grid;gap:8px">${needRows}</div>
+      <button class="btn tiny" style="margin-top:8px" onclick="addNeedRow()">+ Add a need</button></div>
+  `,()=>{
+    const name=val('f_name').trim(); if(!name){ alert('Project name is required'); return false; }
+    const data={ name, description:val('f_desc').trim(), priority:val('f_pri'),
+      start:val('f_start'), end:val('f_end'), needs:readNeeds() };
+    if(d(data.end)<d(data.start)){ alert('End date must be after start date'); return false; }
+    if(id){ Object.assign(projectById(id),data); }
+    else{ state.projects.push({id:uid('pr'),...data}); }
+  });
+  function needRow(n){ const opts=allSkills();
+    return `<div class="row2 needRow">
+      <input type="text" class="nd-skill" list="skillList" value="${esc(n.skill||'')}" placeholder="Skill or role">
+      <div class="flex"><input type="number" class="nd-count" min="1" value="${n.count||1}" style="flex:1" title="How many people">
+      <button class="btn tiny danger" onclick="this.closest('.needRow').remove()">✕</button></div></div>`; }
+  if(!document.getElementById('skillList')){
+    const dl=document.createElement('datalist'); dl.id='skillList';
+    dl.innerHTML=allSkills().map(s=>`<option value="${esc(s)}">`).join(''); document.body.appendChild(dl);
+  }
+  window.addNeedRow=()=>{ const div=document.createElement('div'); div.innerHTML=needRow({}); document.getElementById('needList').appendChild(div.firstChild); };
+  window.readNeeds=()=>[...document.querySelectorAll('.needRow')].map(r=>({
+      skill:r.querySelector('.nd-skill').value.trim(), count:clampNum(r.querySelector('.nd-count').value,1,99,1)
+    })).filter(n=>n.skill);
+}
+
+/* Allocation form */
+function openAllocForm(id){
+  const a=id?state.allocations.find(x=>x.id===id):{personId:state.people[0]?.id,projectId:state.projects[0]?.id,percent:50,start:iso(TODAY),end:iso(addDays(TODAY,90))};
+  modal(id?'Edit assignment':'Add assignment',`
+    <div class="row2">
+      <label class="fld">Person<select id="f_person">${state.people.map(p=>`<option value="${p.id}" ${p.id===a.personId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
+      <label class="fld">Project<select id="f_project">${state.projects.map(p=>`<option value="${p.id}" ${p.id===a.projectId?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
+    </div>
+    <label class="fld" style="max-width:200px">Allocation (% of their time)<input type="number" id="f_pct" min="0" max="100" value="${a.percent}"></label>
+    <div class="row2">
+      <label class="fld">From<input type="date" id="f_start" value="${a.start}"></label>
+      <label class="fld">To<input type="date" id="f_end" value="${a.end}"></label>
+    </div>
+  `,()=>{
+    const data={ personId:val('f_person'), projectId:val('f_project'),
+      percent:clampNum(val('f_pct'),0,100,0), start:val('f_start'), end:val('f_end') };
+    if(d(data.end)<d(data.start)){ alert('End date must be after start date'); return false; }
+    if(id){ Object.assign(state.allocations.find(x=>x.id===id),data); }
+    else{ state.allocations.push({id:uid('a'),...data}); }
+  });
+}
+
+function deletePerson(id){ const p=personById(id); if(!confirm(`Remove ${p.name}? Their assignments will also be removed.`))return;
+  state.people=state.people.filter(x=>x.id!==id); state.allocations=state.allocations.filter(a=>a.personId!==id); render(); }
+function deleteProject(id){ const pr=projectById(id); if(!confirm(`Remove project ${pr.name}? Its assignments will also be removed.`))return;
+  state.projects=state.projects.filter(x=>x.id!==id); state.allocations=state.allocations.filter(a=>a.projectId!==id); render(); }
+function deleteAlloc(id){ if(!confirm('Remove this assignment?'))return; state.allocations=state.allocations.filter(x=>x.id!==id); render(); }
+
+function val(id){ return document.getElementById(id).value; }
+function clampNum(v,min,max,def){ let n=parseFloat(v); if(isNaN(n))n=def; return Math.max(min,Math.min(max,n)); }
+
+/* ============================================================
+   AI ASSISTANT  (built-in, runs locally — no API key needed)
+   ============================================================ */
+let chatHistory=[
+  {role:'bot', text:"Hi! I'm your planning assistant. Ask me things like “Who's free next month?”, “Is anyone over-allocated in Q3?”, or tell me to make a change like “move Priya off Atlas by 20%”."}
+];
+
+function renderAssistant(){
+  const chips=[
+    "Who's free next month?",
+    "Is anyone over-allocated in Q3?",
+    "What's at risk this quarter?",
+    "Who can take on a new lab-systems project?",
+    "Who's idle right now?",
+  ];
+  let log=chatHistory.map(m=>`<div class="msg ${m.role}${m.action?' action':''}">${m.html||esc(m.text)}</div>`).join('');
+  view.innerHTML=`<div class="assistant-grid">
+    <div>
+      <div class="chat">
+        <div class="chat-log" id="chatLog">${log}</div>
+        <div class="chips">${chips.map(c=>`<button class="chip" onclick="askChip(this)">${esc(c)}</button>`).join('')}</div>
+        <div class="chat-input">
+          <input type="text" id="chatBox" placeholder="Ask a question or give an instruction…" autocomplete="off">
+          <button class="btn primary" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card side-card" style="margin-bottom:14px">
+        <h3>📋 One-click summaries</h3>
+        <button class="btn summ-btn" onclick="summaryPortfolio()">Portfolio health</button>
+        <button class="btn summ-btn" onclick="summaryWeekly()">Weekly leadership update</button>
+        <label class="fld" style="margin-top:8px">Project summary
+          <select id="sumProj" onchange="if(this.value)summaryProject(this.value)">
+            <option value="">Choose a project…</option>
+            ${state.projects.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label>
+        <label class="fld" style="margin-top:8px">Person summary
+          <select id="sumPers" onchange="if(this.value)summaryPerson(this.value)">
+            <option value="">Choose a person…</option>
+            ${state.people.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select></label>
+      </div>
+      <div class="card side-card">
+        <h3>💡 Smart suggestions</h3>
+        <div id="sideSuggest">${buildSuggestionsHtml()}</div>
+      </div>
+    </div>
+  </div>`;
+  const box=document.getElementById('chatBox');
+  box.focus();
+  box.onkeydown=e=>{ if(e.key==='Enter') sendChat(); };
+  scrollChat();
+}
+function scrollChat(){ const l=document.getElementById('chatLog'); if(l) l.scrollTop=l.scrollHeight; }
+function pushMsg(role,text,opts={}){ chatHistory.push({role,text,html:opts.html,action:opts.action}); }
+function askChip(el){ document.getElementById('chatBox').value=el.textContent; sendChat(); }
+function sendChat(){
+  const box=document.getElementById('chatBox'); const q=box.value.trim(); if(!q)return;
+  pushMsg('user',q);
+  const resp=answer(q);
+  pushMsg('bot', resp.text, {html:resp.html, action:resp.action});
+  box.value='';
+  renderAssistant();
+}
+
+function buildSuggestionsHtml(){
+  const t=portfolioTotals(); let html='';
+  for(const p of t.over){
+    const rel=suggestRelief(p)[0];
+    const who=rel&&rel.candidates.length? `move some of <b>${esc(p.name.split(' ')[0])}</b>'s ${esc(rel.project.name)} work to <b>${esc(rel.candidates[0].person.name.split(' ')[0])}</b> (${rel.candidates[0].spare}% free)`
+      : `reduce <b>${esc(p.name.split(' ')[0])}</b>'s load — no same-skill backup with spare capacity`;
+    html+=`<div class="suggestion"><b>${esc(p.name.split(' ')[0])} is over-allocated</b> (${workloadOn(p,TODAY)}%). Suggestion: ${who}.</div>`;
+  }
+  for(const pr of t.understaffed){
+    const g=projectStaffing(pr).gaps[0];
+    const c=suggestForGap(g.skill,pr)[0];
+    html+=`<div class="suggestion"><b>${esc(pr.name)} needs ${esc(g.skill)}</b> (${pr.priority} priority). ${c?`Consider <b>${esc(c.person.name.split(' ')[0])}</b> (${c.spare}% free).`:'No one with spare capacity has this skill.'}</div>`;
+  }
+  if(!html) html=`<div class="sub2">Everything looks balanced right now. 🎉</div>`;
+  return html;
+}
+
+/* ----- Plain-English range parsing ----- */
+function parseRange(text){
+  text=text.toLowerCase();
+  const y=TODAY.getFullYear();
+  const qm={ 'q1':[0,2],'q2':[3,5],'q3':[6,8],'q4':[9,11] };
+  for(const k in qm){ if(text.includes(k)){ const [a,b]=qm[k]; return {s:new Date(y,a,1), e:new Date(y,b+1,0), label:k.toUpperCase()}; } }
+  if(text.includes('this quarter')){ const q=Math.floor(TODAY.getMonth()/3); return {s:new Date(y,q*3,1), e:new Date(y,q*3+3,0), label:'this quarter'}; }
+  if(text.includes('next quarter')){ const q=Math.floor(TODAY.getMonth()/3)+1; return {s:new Date(y,q*3,1), e:new Date(y,q*3+3,0), label:'next quarter'}; }
+  if(text.includes('next month')){ const m=TODAY.getMonth()+1; return {s:new Date(y,m,1), e:new Date(y,m+1,0), label:'next month'}; }
+  if(text.includes('this month')){ const m=TODAY.getMonth(); return {s:new Date(y,m,1), e:new Date(y,m+1,0), label:'this month'}; }
+  const months=['january','february','march','april','may','june','july','august','september','october','november','december'];
+  for(let i=0;i<12;i++){ if(text.includes(months[i])){ return {s:new Date(y,i,1), e:new Date(y,i+1,0), label:months[i][0].toUpperCase()+months[i].slice(1)}; } }
+  if(text.includes('next week')){ const s=addDays(mondayOf(TODAY),7); return {s, e:addDays(s,6), label:'next week'}; }
+  if(text.includes('this week')||text.includes(' now')||text.includes('right now')||text.includes('today')){ const s=mondayOf(TODAY); return {s, e:addDays(s,6), label:'this week'}; }
+  return null;
+}
+function findSkillIn(text){
+  text=text.toLowerCase();
+  let best=null,len=0;
+  for(const s of allSkills()){ if(text.includes(s.toLowerCase()) && s.length>len){best=s;len=s.length;} }
+  // common phrasings
+  if(!best){ if(text.includes('lab')) best='Lab Systems'; else if(text.includes('front')) best='Frontend'; else if(text.includes('back')) best='Backend'; }
+  return best;
+}
+
+/* ----- The answer engine ----- */
+function answer(qRaw){
+  const q=qRaw.toLowerCase().trim();
+
+  // ---------- COMMANDS (mutations) ----------
+  // move X off PROJECT by N%   /  reduce X on PROJECT by N%
+  let m=q.match(/(?:move|take|reduce|cut)\s+(.+?)\s+(?:off|from|on|down)\s+(?:project\s+)?(.+?)\s+by\s+(\d+)\s*%?/);
+  if(m){ return cmdAdjust(m[1],m[2],-Math.abs(+m[3])); }
+  // move X off PROJECT  (full removal)
+  m=q.match(/(?:move|take|remove|pull)\s+(.+?)\s+(?:off|from)\s+(?:project\s+)?(.+)/);
+  if(m && !q.includes('add')){ const pr=projectByName(m[2]); const p=personByName(m[1]);
+    if(p&&pr) return cmdAdjust(m[1],m[2],-100); }
+  // increase X on PROJECT by N%
+  m=q.match(/(?:add|increase|bump|raise)\s+(.+?)\s+(?:on|to)\s+(?:project\s+)?(.+?)\s+by\s+(\d+)\s*%?/);
+  if(m){ const p=personByName(m[1]); if(p) return cmdAdjust(m[1],m[2],Math.abs(+m[3])); }
+  // assign X to PROJECT (by N%)
+  m=q.match(/(?:assign|put|add)\s+(.+?)\s+(?:to|on|onto)\s+(?:project\s+)?(.+?)(?:\s+(?:by|at)\s+(\d+)\s*%?)?$/);
+  if(m && personByName(m[1]) && projectByName(m[2]) && !q.includes('new project')){
+    return cmdAssign(m[1],m[2], m[3]?+m[3]:50);
+  }
+  // add a new project called X ... needs N engineers ... starting in MONTH
+  if(/(add|create).*(new )?project/.test(q) || /new project called/.test(q)){
+    return cmdAddProject(qRaw);
+  }
+  // remove person X
+  m=q.match(/(?:remove|delete|drop)\s+(?:person\s+)?(.+)/);
+  if(m && personByName(m[1]) && !projectByName(m[1])){ return cmdRemovePerson(m[1]); }
+
+  // ---------- QUESTIONS ----------
+  const range=parseRange(q);
+
+  // over-allocated
+  if(/over[\s-]?alloc|over[\s-]?committ|overloaded|too much|stretched/.test(q)){
+    return qOverAllocated(range);
+  }
+  // idle / free / available / capacity
+  if(/\b(idle|sitting idle|free|available|spare|capacity|bandwidth|under[\s-]?util)\b/.test(q) && !/skill/.test(q)){
+    // "who can take on" handled below if a skill is named
+    const skill=findSkillIn(q);
+    if(skill && /(take on|take|capacity|skills?)/.test(q)) return qWhoCanTake(skill,range);
+    return qFree(range);
+  }
+  // who can take on a <skill> project / who has skills and capacity
+  if(/(take on|who has|who could|skills? and (the )?capacity|staff)/.test(q)){
+    const skill=findSkillIn(q);
+    if(skill) return qWhoCanTake(skill,range);
+  }
+  // at risk
+  if(/at risk|risk|in trouble|behind|problem/.test(q)){
+    return qAtRisk(range);
+  }
+  // workload of a person
+  const person=personByName(q);
+  if(person && /(workload|how busy|allocat|working on|load|booked|schedule)/.test(q)){
+    return {text:personSummaryText(person)};
+  }
+  // staffing of a project
+  const proj=projectByName(q);
+  if(proj && /(staff|who.?s on|team|gap|covered)/.test(q)){
+    return {text:projectSummaryText(proj)};
+  }
+  // skill listing: who knows X
+  const skill=findSkillIn(q);
+  if(skill && /(who knows|who has|who can do|skill)/.test(q)){
+    const have=state.people.filter(p=>personHasSkill(p,skill));
+    return {text:`People with <b>${esc(skill)}</b>: `+ (have.length? have.map(p=>`${esc(p.name)} (${workloadOn(p,TODAY)}% used)`).join(', '):'none recorded')+'.'};
+  }
+  // fallback person/project quick info
+  if(person) return {text:personSummaryText(person)};
+  if(proj) return {text:projectSummaryText(proj)};
+
+  // help
+  return {html:`I can answer questions about workload, availability, skills and risk, and I can make changes for you. Try:<br>
+    • <i>Who's free next month?</i><br>• <i>Is anyone over-allocated in Q3?</i><br>• <i>Who can take on a lab-systems project?</i><br>
+    • <i>What's at risk this quarter?</i><br>• <i>Move Priya off Atlas by 20%</i><br>• <i>Assign Noah to Nova by 50%</i><br>
+    • <i>Add a new project called Helix starting in August that needs two engineers</i>`};
+}
+
+/* ----- Question handlers ----- */
+function qFree(range){
+  const S=range?range.s:TODAY, E=range?range.e:TODAY;
+  const lbl=range?range.label:'right now';
+  const rows=state.people.map(p=>{
+    const load=range? avgWorkload(p,S,E) : workloadOn(p,TODAY);
+    return {p,load,spare:p.capacity-load};
+  }).filter(r=>r.spare>0).sort((a,b)=>b.spare-a.spare);
+  if(!rows.length) return {text:`Everyone is fully committed ${lbl}. No spare capacity.`};
+  const list=rows.map(r=>`<b>${esc(r.p.name)}</b> — ${r.spare}% free (${esc(r.p.skills.slice(0,3).join(', '))})`).join('<br>');
+  return {html:`People with spare capacity ${esc(lbl)}:<br>${list}`};
+}
+function qWhoCanTake(skill,range){
+  const S=range?range.s:TODAY, E=range?range.e:addDays(TODAY,90);
+  const lbl=range?range.label:'over the next 3 months';
+  const rows=state.people.filter(p=>personHasSkill(p,skill)).map(p=>{
+    const load=avgWorkload(p,S,E); return {p,load,spare:p.capacity-load};
+  }).sort((a,b)=>b.spare-a.spare);
+  if(!rows.length) return {text:`No one currently lists the skill “${esc(skill)}”. You may need to hire or upskill.`};
+  const free=rows.filter(r=>r.spare>0);
+  if(!free.length) return {html:`People with <b>${esc(skill)}</b> skills: ${rows.map(r=>esc(r.p.name)).join(', ')} — but all are fully booked ${esc(lbl)}. Consider reprioritising.`};
+  const list=free.map(r=>`<b>${esc(r.p.name)}</b> — ${r.spare}% free, ${esc(r.p.role)}`).join('<br>');
+  return {html:`Best fits for a <b>${esc(skill)}</b> project (${esc(lbl)}):<br>${list}`};
+}
+function qOverAllocated(range){
+  if(!range){
+    const over=state.people.filter(p=>statusToday(p).kind==='bad');
+    if(!over.length) return {text:'Good news — no one is over-allocated this week.'};
+    return {html:`Over-allocated this week:<br>`+over.map(p=>`<b>${esc(p.name)}</b> — ${workloadOn(p,TODAY)}% of ${p.capacity}%`).join('<br>')};
+  }
+  const rows=state.people.map(p=>({p,peak:peakWorkload(p,range.s,range.e)})).filter(r=>r.peak>r.p.capacity)
+    .sort((a,b)=>b.peak-a.peak);
+  if(!rows.length) return {text:`No one is over-allocated during ${range.label}. 👍`};
+  return {html:`Over-allocated during <b>${esc(range.label)}</b> (peak workload):<br>`+
+    rows.map(r=>`<b>${esc(r.p.name)}</b> — up to ${r.peak}% of ${r.p.capacity}%`).join('<br>')};
+}
+function qAtRisk(range){
+  const t=portfolioTotals();
+  let parts=[];
+  const highUnder=state.projects.filter(pr=>projectStaffing(pr).gaps.length).sort((a,b)=>priRank(b.priority)-priRank(a.priority));
+  if(highUnder.length){
+    parts.push('<b>Understaffed projects</b> (most important first):<br>'+highUnder.map(pr=>{
+      const g=projectStaffing(pr).gaps; return `• ${esc(pr.name)} (${pr.priority}) — missing ${g.map(x=>x.missing+'× '+esc(x.skill)).join(', ')}`;
+    }).join('<br>'));
+  }
+  if(t.over.length){
+    parts.push('<b>Over-allocated people</b>:<br>'+t.over.map(p=>`• ${esc(p.name)} at ${workloadOn(p,TODAY)}%`).join('<br>'));
+  }
+  // time off overlapping critical projects in range
+  if(range){
+    const offs=[];
+    state.people.forEach(p=>(p.timeOff||[]).forEach(to=>{ if(overlaps(d(to.start),d(to.end),range.s,range.e)) offs.push(`${esc(p.name)} off ${fmtShort(d(to.start))}–${fmtShort(d(to.end))}`); }));
+    if(offs.length) parts.push('<b>Planned time off in '+esc(range.label)+'</b>:<br>'+offs.map(o=>'• '+o).join('<br>'));
+  }
+  if(!parts.length) return {text:'Nothing major at risk — projects are staffed and no one is over-allocated.'};
+  return {html:parts.join('<br><br>')};
+}
+
+/* ----- Command handlers ----- */
+function cmdAdjust(personTxt, projTxt, delta){
+  const p=personByName(personTxt), pr=projectByName(projTxt);
+  if(!p) return {text:`I couldn't find a person matching “${esc(personTxt.trim())}”.`};
+  if(!pr) return {text:`I couldn't find a project matching “${esc(projTxt.trim())}”.`};
+  const allocs=state.allocations.filter(a=>a.personId===p.id && a.projectId===pr.id);
+  if(!allocs.length) return {text:`${esc(p.name)} isn't currently assigned to ${esc(pr.name)}.`};
+  const a=allocs[0];
+  const before=a.percent;
+  a.percent=Math.max(0, Math.min(100, a.percent+delta));
+  let actionTxt;
+  if(a.percent===0){ state.allocations=state.allocations.filter(x=>x.id!==a.id);
+    actionTxt=`Removed <b>${esc(p.name)}</b> from <b>${esc(pr.name)}</b> (was ${before}%).`; }
+  else actionTxt=`Updated <b>${esc(p.name)}</b> on <b>${esc(pr.name)}</b>: ${before}% → <b>${a.percent}%</b>.`;
+  save();
+  const now=workloadOn(p,TODAY);
+  const flag=now>p.capacity?` ⚠️ ${esc(p.name.split(' ')[0])} is now over-allocated at ${now}%.`:` ${esc(p.name.split(' ')[0])}'s total is now ${now}%.`;
+  return {html:actionTxt+flag, action:true};
+}
+function cmdAssign(personTxt, projTxt, pct){
+  const p=personByName(personTxt), pr=projectByName(projTxt);
+  if(!p) return {text:`I couldn't find a person matching “${esc(personTxt.trim())}”.`};
+  if(!pr) return {text:`I couldn't find a project matching “${esc(projTxt.trim())}”.`};
+  const existing=state.allocations.find(a=>a.personId===p.id&&a.projectId===pr.id);
+  if(existing){ existing.percent=Math.min(100,pct); save();
+    return {html:`<b>${esc(p.name)}</b> was already on <b>${esc(pr.name)}</b> — set to <b>${existing.percent}%</b>.`, action:true}; }
+  state.allocations.push({id:uid('a'),personId:p.id,projectId:pr.id,percent:Math.min(100,pct),start:pr.start,end:pr.end});
+  save();
+  const now=workloadOn(p,TODAY);
+  const flag=now>p.capacity?` ⚠️ Heads up: ${esc(p.name.split(' ')[0])} is now over-allocated at ${now}%.`:'';
+  return {html:`Assigned <b>${esc(p.name)}</b> to <b>${esc(pr.name)}</b> at <b>${pct}%</b> for the project's dates.${flag}`, action:true};
+}
+const NUMWORDS={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10};
+function cmdAddProject(qRaw){
+  const q=qRaw.toLowerCase();
+  // name
+  let name='New Project';
+  let nm=qRaw.match(/called\s+([A-Za-z0-9 ]+?)(?:\s+(?:starting|that|which|in|needs|needing|beginning)\b|$)/i);
+  if(nm) name=nm[1].trim();
+  // start
+  const range=parseRange(q);
+  const start=range? iso(range.s) : iso(addDays(TODAY,30));
+  // engineers/people count
+  let count=1, skill='Engineer';
+  let cm=q.match(/(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+([a-z ]+?)s?\b/);
+  if(/needs?|needing|requires?/.test(q)){
+    const nm2=q.match(/(?:needs?|needing|requires?)\s+(?:about\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+([a-z][a-z ]*?)s?\b/);
+    if(nm2){ count=NUMWORDS[nm2[1]]||+nm2[1]||1; skill=titleCase(nm2[2].trim()); }
+  }
+  const matchedSkill=findSkillIn(q); if(matchedSkill) skill=matchedSkill;
+  const endD=iso(addDays(d(start),120));
+  const prid=uid('pr');
+  state.projects.push({id:prid,name,description:'Added via assistant',start,end:endD,priority:'Medium',
+    needs:[{skill,count}]});
+  save();
+  // suggest staffing
+  const cands=suggestForGap(skill, projectById(prid)).slice(0,count);
+  const sug=cands.length? ` Suggested people: ${cands.map(c=>esc(c.person.name.split(' ')[0])+' ('+c.spare+'% free)').join(', ')}.`
+    : ` I don't see anyone with “${esc(skill)}” skills and spare capacity — you may need to hire.`;
+  return {html:`Created project <b>${esc(name)}</b>, starting ${fmt(d(start))}, needing <b>${count}× ${esc(skill)}</b>.${sug}`, action:true};
+}
+function titleCase(s){ return s.replace(/\b\w/g,c=>c.toUpperCase()); }
+function cmdRemovePerson(personTxt){
+  const p=personByName(personTxt);
+  if(!p) return {text:`I couldn't find a person matching “${esc(personTxt.trim())}”.`};
+  const n=allocationsFor(p.id).length;
+  state.people=state.people.filter(x=>x.id!==p.id);
+  state.allocations=state.allocations.filter(a=>a.personId!==p.id);
+  save();
+  return {html:`Removed <b>${esc(p.name)}</b> and their ${n} assignment(s). Check the affected projects for new gaps.`, action:true};
+}
+
+/* ----- Summaries ----- */
+function pushSummary(title, html){ pushMsg('bot', title, {html:`<b>${esc(title)}</b><br>${html}`}); currentTab='assistant'; renderAssistant(); }
+function summaryPortfolio(){
+  const t=portfolioTotals();
+  const util=t.capacity>0?Math.round(t.demand/t.capacity*100):0;
+  let html=`Across ${state.people.length} people and ${state.projects.length} projects, the team is using <b>${util}%</b> of its capacity this week (${t.demand}% committed of ${t.capacity}% available).<br><br>`;
+  html+= t.over.length? `⚠️ <b>${t.over.length}</b> over-allocated: ${t.over.map(p=>esc(p.name.split(' ')[0])).join(', ')}.<br>` : `✅ No one is over-allocated.<br>`;
+  html+= t.idle.length? `💤 <b>${t.idle.length}</b> idle: ${t.idle.map(p=>esc(p.name.split(' ')[0])).join(', ')}.<br>` : `✅ No one is sitting idle.<br>`;
+  html+= t.understaffed.length? `🔧 <b>${t.understaffed.length}</b> understaffed: ${t.understaffed.map(p=>esc(p.name)).join(', ')}.` : `✅ All projects are staffed.`;
+  pushSummary('Portfolio health summary', html);
+}
+function summaryProject(id){ const pr=projectById(id); if(pr){ pushMsg('bot','',{html:`<b>${esc(pr.name)} — project summary</b><br>`+projectSummaryText(pr)}); document.getElementById('view'); currentTab='assistant'; renderAssistant(); } }
+function summaryPerson(id){ const p=personById(id); if(p){ pushMsg('bot','',{html:`<b>${esc(p.name)} — summary</b><br>`+personSummaryText(p)}); currentTab='assistant'; renderAssistant(); } }
+function projectSummaryText(pr){
+  const st=projectStaffing(pr);
+  let html=`${esc(pr.description)}<br>Runs ${fmt(d(pr.start))} → ${fmt(d(pr.end))}, <b>${pr.priority}</b> priority.<br>`;
+  html+=`Team (${st.peopleOn.length}): ${st.members.map(m=>esc(m.person.name.split(' ')[0])+' '+m.alloc.percent+'%').join(', ')||'no one yet'}.<br>`;
+  if(st.gaps.length){
+    html+=`<span style="color:var(--bad)"><b>Gaps:</b> ${st.gaps.map(g=>g.missing+'× '+esc(g.skill)).join(', ')}.</span> `;
+    const g=st.gaps[0]; const c=suggestForGap(g.skill,pr)[0];
+    if(c) html+=`Could add ${esc(c.person.name.split(' ')[0])} (${c.spare}% free).`;
+  } else html+=`<span style="color:var(--ok)">Fully staffed for the skills it needs.</span>`;
+  return html;
+}
+function personSummaryText(p){
+  const s=statusToday(p);
+  const allocs=allocationsFor(p.id).map(a=>{ const pr=projectById(a.projectId); return pr?`${esc(pr.name)} (${a.percent}%)`:null; }).filter(Boolean);
+  let html=`${esc(p.role)}, ${esc(p.team)} team. Capacity ${p.capacity}%. Skills: ${esc(p.skills.join(', '))}.<br>`;
+  html+=`Currently <b>${s.load}%</b> committed — <span class="pill ${s.kind==='off'?'idle':s.kind}">${s.label}</span><br>`;
+  html+=`On: ${allocs.join(', ')||'no active projects'}.`;
+  if((p.timeOff||[]).length) html+=`<br>Time off: ${p.timeOff.map(t=>fmtShort(d(t.start))+'–'+fmtShort(d(t.end))).join(', ')}.`;
+  if(s.kind==='bad'){ const rel=suggestRelief(p)[0]; if(rel&&rel.candidates.length) html+=`<br>💡 To relieve: move some ${esc(rel.project.name)} work to ${esc(rel.candidates[0].person.name.split(' ')[0])} (${rel.candidates[0].spare}% free).`; }
+  return html;
+}
+function summaryWeekly(){
+  const t=portfolioTotals();
+  const util=t.capacity>0?Math.round(t.demand/t.capacity*100):0;
+  const high=state.projects.filter(p=>p.priority==='High');
+  let html=`<i>Weekly Resourcing Update — ${fmt(TODAY)}</i><br><br>`;
+  html+=`<b>Overall:</b> The team is running at ${util}% of capacity. `;
+  html+= t.over.length? `${t.over.length} ${t.over.length===1?'person is':'people are'} over-allocated and need attention. ` : `Workload is balanced. `;
+  html+= t.understaffed.length? `${t.understaffed.length} project(s) have staffing gaps.`:`All projects are adequately staffed.`;
+  html+=`<br><br><b>Priority projects:</b><br>`;
+  html+=high.map(pr=>{ const st=projectStaffing(pr); return `• ${esc(pr.name)} — ${st.peopleOn.length} on the team${st.gaps.length?', needs '+st.gaps.map(g=>g.missing+'× '+esc(g.skill)).join(', '):', fully staffed'}.`; }).join('<br>')||'• None flagged.';
+  if(t.over.length){ html+=`<br><br><b>Risks:</b><br>`+t.over.map(p=>`• ${esc(p.name)} at ${workloadOn(p,TODAY)}% — recommend redistributing.`).join('<br>'); }
+  html+=`<br><br><b>Actions:</b> Review gaps on high-priority work; rebalance over-allocated team members.`;
+  pushSummary('Weekly leadership update', html);
+}
+
+/* ============================================================
+   Capture command intent for What-if Apply + boot
+   ============================================================ */
+// Wrap runWhatIf to remember choices for Apply
+const _runWhatIf=runWhatIf;
+runWhatIf=function(){
+  if(whatIf.action==='add-alloc'){
+    lastWf={kind:'add-alloc', pid:document.getElementById('wfPerson').value, prid:document.getElementById('wfProject').value, pct:+document.getElementById('wfPct').value||0};
+  } else if(whatIf.action==='remove-person'){
+    lastWf={kind:'remove-person', pid:document.getElementById('wfRemove').value};
+  } else {
+    const name=document.getElementById('wfName').value||'New Project';
+    const start=document.getElementById('wfStart').value; const eng=+document.getElementById('wfEng').value||1;
+    const engPeople=state.people.filter(p=>p.role.toLowerCase().includes('engineer'))
+      .map(p=>({p,spare:p.capacity-workloadOn(p,d(start))})).sort((a,b)=>b.spare-a.spare).slice(0,eng).map(e=>e.p.id);
+    lastWf={kind:'add-project', name, start, eng, engPeople};
+  }
+  _runWhatIf();
+};
+
+/* ---------- Tab switching + boot ---------- */
+document.getElementById('tabs').addEventListener('click', e=>{
+  if(e.target.dataset.tab){ currentTab=e.target.dataset.tab; filters.q=''; render(); }
+});
+document.getElementById('resetBtn').onclick=()=>{ if(confirm('Restore the original sample data? Your current changes will be lost.')) resetData(); };
+
+render();
+</script>
+</body>
+</html>
